@@ -294,3 +294,26 @@ The Wayback Machine lets you see how websites looked in the past. This is helpfu
 - Track Changes: Compare how a target website evolved. You might find removed features or leaks.
 
 - Silent Recon: Since you're not scanning the site directly, it’s a stealthy way to gather info without triggering alarms.
+
+
+# Final Recconning:
+
+**What FinalRecon Can Do:**
+
+- Show server info and tech stack
+- Check domain registration details
+- Get SSL certificate info
+- Crawl website pages and resources
+- Enumerate DNS records and subdomains
+- Search hidden directories/files
+- Get URLs from Wayback Machine snapshots
+- Scan ports quickly
+
+**Setting up**
+<pre>git clone https://github.com/thewhiteh4t/FinalRecon.git
+cd FinalRecon
+pip3 install -r requirements.txt
+chmod +x ./finalrecon.py</pre>
+
+**Usage**
+./finalrecon.py --headers --whois --url http://inlanefreight.com
