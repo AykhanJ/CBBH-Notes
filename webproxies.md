@@ -1,74 +1,69 @@
-🛠️ ZAP Scanner Overview
+# 🛠️ ZAP Scanner Overview
 ZAP (Zed Attack Proxy) includes a web scanner like Burp. It can:
 
-Build a site map (with Spider)
+- Build a site map (with Spider)
 
-Do Passive Scans (no attacks)
+- Do Passive Scans (no attacks)
 
-Do Active Scans (send attack payloads)
+- Do Active Scans (send attack payloads)
 
-🕷️ Spider (Site Crawler)
+# 🕷️ Spider (Site Crawler)
 Finds pages by following links.
-
 Start it by:
 
-Right-clicking a request → Attack > Spider
+- Right-clicking a request → Attack > Spider
 
-Or clicking the Spider button in HUD (browser view).
+- Or clicking the Spider button in HUD (browser view).
 
-If prompted, allow ZAP to add the site to scope.
+- If prompted, allow ZAP to add the site to scope.
 
-Results appear in Sites Tree.
+- Results appear in Sites Tree.
 
-👉 Ajax Spider: Also finds content loaded dynamically via JavaScript (AJAX).
+- 👉 Ajax Spider: Also finds content loaded dynamically via JavaScript (AJAX).
 
-🛡️ Passive Scanner
+# 🛡️ Passive Scanner
 Runs automatically during Spider.
-
 Looks for:
 
-Missing security headers
+- Missing security headers
 
-Potential XSS or DOM-based issues
+- Potential XSS or DOM-based issues
 
-Alerts appear:
+- Alerts appear:
 
-Left: Page-specific
+- Left: Page-specific
 
-Right: Whole site
+- Right: Whole site
 
-🔍 Active Scanner
+# 🔍 Active Scanner
 Start it after Spider completes (or ZAP will spider first).
-
 Sends attacks to all pages/inputs to find real vulnerabilities.
 
-Takes more time, shows progress and alerts.
+- Takes more time, shows progress and alerts.
 
 Can detect:
 
-XSS
+- XSS
 
-SQLi
+- SQLi
 
-Command injection
+- Command injection
 
-and more
+# 👀 Example Alert:
 
-👀 Example Alert:
+- High Risk: Remote OS Command Injection
 
-High Risk: Remote OS Command Injection
-
-Evidence: /etc/passwd output found
+- Evidence: /etc/passwd output found
 
 You can:
 
-Click alerts for details
+- Click alerts for details
 
-Replay requests
+- Replay requests
 
-Use ZAP HUD or request editor
+- Use ZAP HUD or request editor
 
-📝 Reporting
+# 📝 Reporting
 Generate reports: Reports > Generate HTML Report
 
 Save as HTML, XML, or Markdown
