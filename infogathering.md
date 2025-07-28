@@ -151,7 +151,7 @@ Combine with `/etc/hosts` if DNS doesn't resolve:
 🔧 Example: Finding Subdomains with crt.sh API
 You can use the crt.sh API in the terminal to find subdomains. Here’s how to find all dev subdomains of facebook.com:
 
-' curl -s "https://crt.sh/?q=facebook.com&output=json" | jq -r '.[] | select(.name_value | contains("dev")) | .name_value' | sort -u '
+<pre> ```curl -s "https://crt.sh/?q=facebook.com&output=json" | jq -r '.[] | select(.name_value | contains("dev")) | .name_value' | sort -u ``` </pre>
 
 What this does:
 
@@ -163,10 +163,10 @@ What this does:
 
 Example Output:
 
-'*.dev.facebook.com  
+<pre> ```*.dev.facebook.com  
 dev.facebook.com  
 secure.dev.facebook.com  
 newdev.facebook.com  
-...'
+...``` </pre>
 
 This is a quick way to enumerate subdomains using CT logs.
