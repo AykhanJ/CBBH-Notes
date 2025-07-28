@@ -316,4 +316,4 @@ pip3 install -r requirements.txt
 chmod +x ./finalrecon.py</pre>
 
 **Usage**
-./finalrecon.py --headers --whois --url http://inlanefreight.com
+`./finalrecon.py --headers --whois --url http://inlanefreight.com`
