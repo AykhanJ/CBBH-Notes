@@ -208,3 +208,89 @@ This is a quick way to enumerate subdomains using CT logs.
 cd nikto/program
 chmod +x nikto.pl
 ./nikto.pl -h inlanefreight.com -Tuning b</pre>
+
+# Crawlers:
+
+| Tool                  | Description                                                          |
+| --------------------- | -------------------------------------------------------------------- |
+| **Burp Suite Spider** | Part of Burp Suite, maps websites and finds hidden content.          |
+| **OWASP ZAP Spider**  | Open-source security scanner with built-in crawling.                 |
+| **Scrapy**            | Python framework for building custom crawlers. Great for automation. |
+| **Apache Nutch**      | Scalable Java-based crawler. Suitable for large-scale crawling.      |
+
+# 🐍 Using Scrapy + ReconSpider
+
+<pre>pip3 install scrapy
+wget -O ReconSpider.zip https://academy.hackthebox.com/storage/modules/144/ReconSpider.v1.2.zip
+unzip ReconSpider.zip
+python3 ReconSpider.py http://inlanefreight.com</pre>
+
+**Replace inlanefreight.com with your target.**
+
+# Output
+
+| Key              | What It Shows                     |
+| ---------------- | --------------------------------- |
+| `emails`         | Found email addresses.            |
+| `links`          | Internal/external links.          |
+| `external_files` | PDF/docs/etc. linked on the site. |
+| `js_files`       | JavaScript files used.            |
+| `images`         | Image links.                      |
+| `form_fields`    | Any HTML forms.                   |
+| `comments`       | HTML comments in the page source. |
+| `videos/audio`   | Media files if found.             |
+
+
+# Useful Google Dorking:
+
+| Operator           | What It Does                        | Example                         |
+| ------------------ | ----------------------------------- | ------------------------------- |
+| `site:`            | Search within a specific site       | `site:example.com`              |
+| `inurl:`           | Find keywords in URLs               | `inurl:login`                   |
+| `filetype:`        | Search for specific file types      | `filetype:pdf`                  |
+| `intitle:`         | Keyword in page title               | `intitle:"confidential report"` |
+| `intext:`          | Keyword in the page body            | `intext:"password reset"`       |
+| `cache:`           | View cached (old) version of a page | `cache:example.com`             |
+| `link:`            | Find sites linking to a page        | `link:example.com`              |
+| `related:`         | Find similar sites                  | `related:example.com`           |
+| `" "`              | Exact phrase match                  | `"admin login"`                 |
+| `-`                | Exclude terms                       | `site:example.com -inurl:login` |
+| `*`                | Wildcard (any word)                 | `filetype:pdf user* manual`     |
+| `..`               | Number range                        | `"price" 100..500`              |
+| `AND`, `OR`, `NOT` | Combine or exclude terms            | `linux OR ubuntu NOT debian`    |
+
+
+**🔐 Find Login Pages:**
+
+<pre>site:example.com inurl:login
+site:example.com (inurl:login OR inurl:admin)</pre>
+
+**📄 Find Exposed Files:**
+
+<pre>site:example.com filetype:pdf
+site:example.com (filetype:xls OR filetype:docx)</pre>
+
+**⚙️ Find Config Files:**
+
+<pre>site:example.com inurl:config.php
+site:example.com (ext:conf OR ext:cnf)</pre>
+
+**💾 Find Database Backups:**
+
+<pre>site:example.com inurl:backup
+site:example.com filetype:sql</pre>
+
+
+# 🕵️‍♂️ Using Web Archives (Wayback Machine)
+
+The Wayback Machine lets you see how websites looked in the past. This is helpful for reconnaissance (OSINT) in the CBBH exam.
+
+**✅ How It Helps in CBBH:**
+
+- Find Old Pages: Discover deleted pages, hidden directories, or subdomains that could contain useful or sensitive info.
+
+- Spot Vulnerabilities: Older versions of sites may expose old technologies or outdated features with known weaknesses.
+
+- Track Changes: Compare how a target website evolved. You might find removed features or leaks.
+
+- Silent Recon: Since you're not scanning the site directly, it’s a stealthy way to gather info without triggering alarms.
