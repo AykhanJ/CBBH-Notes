@@ -12,7 +12,7 @@ Curl Command:
 if we contact a website with an invalid SSL certificate, then cURL by default would not proceed with the communication. To bypass this: 
 `curl -k https://inlanefreight.com`
 
-
+|---------------|---------------|
 | `curl inlanefreight.com -v` | verbose mode| 
 | `curl -O inlanefreight.com/index.html` | downloading a file| 
 | `curl -O inlanefreight.com/index.html` | downloading a file| 
