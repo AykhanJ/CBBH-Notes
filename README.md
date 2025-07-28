@@ -27,8 +27,8 @@
 - Bug Bounty Hunting Process
 
 ## 🎯 Payloads
-- [Payloads](payloads/common-payloads.md)
+- [Payloads](payloads.md)
 
 ## 📌 Tips
-- [Reporting Tips](tips/reporting-tips.md)
+- [Reporting Tips](reporting-tips.md)
 
