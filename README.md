@@ -5,7 +5,7 @@
 📘 My personal notes for the HTB Certified Bug Bounty Hunter exam.
 
 ## 🔎 Modules
-- Web Requests
+- [Web Requests](webrequests.md)
 - Introduction to Web Applications
 - Using Web Proxies
 - Information Gathering - Web Edition
