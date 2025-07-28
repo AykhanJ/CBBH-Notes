@@ -89,3 +89,86 @@ They find patterns:
 - `-f <wordlist>`: Uses a specific wordlist to brute-force subdomains.
 
 - `-r`: Recursively tries to find sub-subdomains.
+- 
+
+# AXFR Zone Transfer
+
+🧠 DNS Zone Transfers (AXFR) – Simplified
+What is it?
+A zone transfer is when one DNS server copies all DNS records (like A, MX, CNAME, etc.) from another DNS server. It’s meant for backup and redundancy between trusted servers.
+
+🔓 Why It Can Be a Risk
+If a DNS server is misconfigured, anyone can request a zone transfer. That means an attacker could get:
+
+✅ Full list of subdomains
+
+✅ Their IP addresses
+
+✅ Mail and name server info
+
+✅ Hidden environments (dev, staging, etc.)
+
+# Using AXFR:
+
+ First, don't forget to add the IP to `/etc/resolv.conf` like `nameserver 10.10.10.10`. Then use this command: `dig axfr target-domain.htb @10.10.10.10`
+
+ # Virtual Hosts:
+
+ 📘 Example: Discovering VHosts with Gobuster
+
+`gobuster vhost -u http://<target_IP> -w <wordlist> --append-domain`
+
+-u: Target URL (IP)
+
+-w: Wordlist (e.g., /usr/share/seclists/...)
+
+--append-domain: Adds domain to each word in the list (e.g., test.inlanefreight.htb)
+
+Other useful flags:
+
+-t: Threads (speed up)
+
+-k: Ignore SSL cert errors
+
+-o: Output results to a file
+
+
+📝 Notes:
+Hidden VHosts may reveal admin panels, staging environments, or test sites.
+
+Combine with `/etc/hosts` if DNS doesn't resolve:
+
+`echo "10.10.10.10 test.inlanefreight.htb" | sudo tee -a /etc/hosts`
+
+# Certificate Transparency (CT) Logs:
+
+| Tool       | Highlights                                                          | Best For                           | Pros                            | Cons                    |
+| ---------- | ------------------------------------------------------------------- | ---------------------------------- | ------------------------------- | ----------------------- |
+| **crt.sh** | Easy web search by domain, shows certificate details and subdomains | Quick checks, finding subdomains   | Free, no sign-up, simple        | Limited filtering       |
+| **Censys** | Advanced search and filters, works with domain, IP, and cert data   | Deep analysis, misconfig detection | Detailed results, API available | Requires (free) account |
+
+
+🔧 Example: Finding Subdomains with crt.sh API
+You can use the crt.sh API in the terminal to find subdomains. Here’s how to find all dev subdomains of facebook.com:
+
+'curl -s "https://crt.sh/?q=facebook.com&output=json" | jq -r '.[] | select(.name_value | contains("dev")) | .name_value' | sort -u'
+
+What this does:
+
+- curl fetches certificate data for facebook.com in JSON format.
+
+- jq filters the results, showing only domains with "dev" in them.
+
+- sort -u removes duplicates and sorts them.
+
+Example Output:
+
+'
+*.dev.facebook.com  
+dev.facebook.com  
+secure.dev.facebook.com  
+newdev.facebook.com  
+...
+'
+
+This is a quick way to enumerate subdomains using CT logs.
