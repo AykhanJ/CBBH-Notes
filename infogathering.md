@@ -199,6 +199,7 @@ This is a quick way to enumerate subdomains using CT logs.
 # WAF Detection with wafw00f
 
 `pip3 install git+https://github.com/EnableSecurity/wafw00f`
+
 `wafw00f inlanefreight.com`
 
 # Web Scanner with Nikto
