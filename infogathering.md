@@ -170,3 +170,40 @@ newdev.facebook.com
 ...``` </pre>
 
 This is a quick way to enumerate subdomains using CT logs.
+
+
+# 🛠️ Common Fingerprinting Techniques
+
+| Technique           | Description                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| **Banner Grabbing** | Read server banners for software/version info.               |
+| **HTTP Headers**    | Look at `Server`, `X-Powered-By`, etc.                       |
+| **Custom Probes**   | Send crafted requests for version-specific errors.           |
+| **Page Content**    | Detect tech by analyzing HTML/JS, e.g., "wp-" for WordPress. |
+
+
+| Tool           | Use                                               |
+| -------------- | ------------------------------------------------- |
+| **Wappalyzer** | Browser extension for identifying web tech.       |
+| **BuiltWith**  | Online tool for tech stack analysis.              |
+| **WhatWeb**    | CLI tool for identifying CMS and server software. |
+| **Nmap**       | With NSE scripts for service/OS detection.        |
+| **Netcraft**   | Online site profile and security info.            |
+| **wafw00f**    | Detects if a WAF (Web App Firewall) is in place.  |
+
+
+# Banner Grabbing
+
+`curl -I inlanefreight.com`
+
+# WAF Detection with wafw00f
+
+`pip3 install git+https://github.com/EnableSecurity/wafw00f`
+`wafw00f inlanefreight.com`
+
+# Web Scanner with Nikto
+
+<pre> ```git clone https://github.com/sullo/nikto
+cd nikto/program
+chmod +x nikto.pl
+./nikto.pl -h inlanefreight.com -Tuning b``` </pre>
