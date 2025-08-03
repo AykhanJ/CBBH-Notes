@@ -148,7 +148,9 @@ They use two scanning methods:
 **1 - Open-source XSS tools:**
 
 XSStrike - https://github.com/s0md3v/XSStrike
+
 BruteXSS - https://github.com/shawarkhanethicalhacker/BruteXSS-1
+
 XSSer - https://github.com/epsylon/xsser
 
 XSStrike:
