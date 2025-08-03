@@ -6,12 +6,12 @@
 
 ## 🔎 Modules
 - [Web Requests](webrequests.md)
-- Introduction to Web Applications
-- Using Web Proxies
-- Information Gathering - Web Edition
-- Attacking Web Applications with Ffuf
-- JavaScript Deobfuscation
-- Cross-Site Scripting (XSS)
+- [Introduction to Web Applications](introtowebapp.md)
+- [Using Web Proxies](webproxies.md)
+- [Information Gathering - Web Edition](infogathering.md)
+- [Attacking Web Applications with Ffuf](fuffattack.md)
+- [JavaScript Deobfuscation](obfuscation.md)
+- [Cross-Site Scripting (XSS)](xss.md)
 - SQL Injection Fundamentals
 - SQLMap Essentials
 - Command Injections
