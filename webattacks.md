@@ -510,7 +510,7 @@ XML documents have a root element and child elements.
 
 **Example XML:**
 
-<pre><?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <email>
   <date>01-01-2022</date>
   <time>10:00 am UTC</time>
@@ -523,7 +523,7 @@ XML documents have a root element and child elements.
     </cc>
   </recipients>
   <body>Hello, Kindly share with me the invoice...</body>
-</email></pre>
+</email>
 
 **XML DTD (Document Type Definition)**
 
@@ -531,7 +531,7 @@ A DTD defines the allowed structure of an XML document.
 
 **Example:**
 
-<pre>
+
 <!DOCTYPE email [
   <!ELEMENT email (date, time, sender, recipients, body)>
   <!ELEMENT recipients (to, cc?)>
@@ -541,7 +541,7 @@ A DTD defines the allowed structure of an XML document.
   <!ELEMENT sender (#PCDATA)>
   <!ELEMENT to  (#PCDATA)>
   <!ELEMENT body (#PCDATA)>
-]></pre>
+]>
 
 Can be internal (inside the XML) or external (in a file like email.dtd).
 
