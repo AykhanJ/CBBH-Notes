@@ -510,7 +510,21 @@ XML documents have a root element and child elements.
 
 **Example XML:**
 
-<pre> ```xml &lt;?xml version="1.0" encoding="UTF-8"?&gt; &lt;email&gt; &lt;date&gt;01-01-2022&lt;/date&gt; &lt;time&gt;10:00 am UTC&lt;/time&gt; &lt;/email&gt; ``` </pre>
+<?xml version="1.0" encoding="UTF-8"?>
+<email>
+  <date>01-01-2022</date>
+  <time>10:00 am UTC</time>
+  <sender>john@inlanefreight.com</sender>
+  <recipients>
+    <to>HR@inlanefreight.com</to>
+    <cc>
+        <to>billing@inlanefreight.com</to>
+        <to>payslips@inlanefreight.com</to>
+    </cc>
+  </recipients>
+  <body>Hello, Kindly share with me the invoice...</body>
+</email>
+
 
 **XML DTD (Document Type Definition)**
 
