@@ -97,9 +97,7 @@ Requirements for cookie theft via XSS:
 
 **Payloads for testing:**
 
-<pre>"><img src=x onerror=prompt(document.domain)>
-"><img src=x onerror=confirm(1)>
-"><img src=x onerror=alert(1)></pre>
+<img width="512" height="97" alt="image" src="https://github.com/user-attachments/assets/a807f718-87da-43e1-b53c-7d187da326c1" />
 
 Save changes
 
