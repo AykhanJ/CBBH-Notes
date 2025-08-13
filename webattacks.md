@@ -630,11 +630,7 @@ We can then decode it locally.
 
 **2. Local PHP Listener**
 
-<pre><?php
-if (isset($_GET['content'])) {
-    error_log("\n\n" . base64_decode($_GET['content']));
-}
-?></pre>
+<img width="606" height="166" alt="image" src="https://github.com/user-attachments/assets/8c73eb06-0145-40b5-94f9-e4df204069ac" />
 
 Run the listener:
 
