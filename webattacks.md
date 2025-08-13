@@ -510,21 +510,7 @@ XML documents have a root element and child elements.
 
 **Example XML:**
 
-**<?xml version="1.0" encoding="UTF-8"?>**
-**<email>**
-  **<date>01-01-2022</date>**
-  **<time>10:00 am UTC</time>**
-  <sender>john@inlanefreight.com</sender>
-  <recipients>
-    <to>HR@inlanefreight.com</to>
-    <cc>
-        <to>billing@inlanefreight.com</to>
-        <to>payslips@inlanefreight.com</to>
-    </cc>
-  </recipients>
-  <body>Hello, Kindly share with me the invoice...</body>
-</email>
-
+<img width="646" height="460" alt="image" src="https://github.com/user-attachments/assets/4d54ddbc-2169-416e-8e2e-2d8f1c223959" />
 
 **XML DTD (Document Type Definition)**
 
@@ -532,59 +518,36 @@ A DTD defines the allowed structure of an XML document.
 
 **Example:**
 
-
-<!DOCTYPE email [
-  <!ELEMENT email (date, time, sender, recipients, body)>
-  <!ELEMENT recipients (to, cc?)>
-  <!ELEMENT cc (to*)>
-  <!ELEMENT date (#PCDATA)>
-  <!ELEMENT time (#PCDATA)>
-  <!ELEMENT sender (#PCDATA)>
-  <!ELEMENT to  (#PCDATA)>
-  <!ELEMENT body (#PCDATA)>
-]>
+<img width="655" height="325" alt="image" src="https://github.com/user-attachments/assets/eaa99e15-2c48-4f03-9e8b-a83e73534811" />
 
 Can be internal (inside the XML) or external (in a file like email.dtd).
 
 **Example referencing an external file:**
 
-<pre><?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE email SYSTEM "email.dtd"></pre>
+<img width="492" height="81" alt="image" src="https://github.com/user-attachments/assets/c5b43bfd-814a-423b-9806-91842d740baa" />
 
-Example referencing via URL:
+**Example referencing via URL:**
 
-xml
-Copy
-Edit
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE email SYSTEM "http://inlanefreight.com/email.dtd">
-XML Entities
+<img width="641" height="77" alt="image" src="https://github.com/user-attachments/assets/7215ad45-8a01-4fc6-9524-78427b3b655e" />
+
+**XML Entities**
+
 Entities are variables in XML, defined in DTDs.
 
-Internal Entity Example:
+**Internal Entity Example:**
 
-xml
-Copy
-Edit
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE email [
-  <!ENTITY company "Inlane Freight">
-]>
+<img width="483" height="138" alt="image" src="https://github.com/user-attachments/assets/c1c3bd1f-ec6f-47fa-8e97-6831f38b94b3" />
+
+
 Use in document: &company; → replaced with Inlane Freight.
 
-External Entity Example (SYSTEM keyword):
+**External Entity Example (SYSTEM keyword):**
 
-xml
-Copy
-Edit
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE email [
-  <!ENTITY company SYSTEM "http://localhost/company.txt">
-  <!ENTITY signature SYSTEM "file:///var/www/html/signature.txt">
-]>
-SYSTEM loads from a file path or URL.
+<img width="688" height="163" alt="image" src="https://github.com/user-attachments/assets/5f75e454-2890-4d21-880e-fbb9b18927e2" />
 
-PUBLIC can also be used for public resources.
+
+- SYSTEM loads from a file path or URL.
+- PUBLIC can also be used for public resources.
 
 When parsed server-side (e.g., SOAP APIs or form uploads), external entities can load local server files. If the file content is returned to the attacker, it can leak sensitive server data.
 
