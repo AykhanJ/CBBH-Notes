@@ -106,33 +106,21 @@ Definition – Root element containing namespaces, types, messages, operations, 
 
 **Data Types** – Defines request/response formats.
 
-<pre><s:element name="LoginRequest">
-  <s:sequence>
-    <s:element name="username" type="s:string"/>
-    <s:element name="password" type="s:string"/>
-  </s:sequence>
-</s:element></pre>
-
+<img width="562" height="208" alt="image" src="https://github.com/user-attachments/assets/eacca402-0d10-4fbd-9e24-920828b95e60" />
 
 **Messages** – Input/output formats for each operation.
 
-<pre><wsdl:message name="LoginSoapIn">
-  <wsdl:part name="parameters" element="tns:LoginRequest"/>
-</wsdl:message></pre>
-
+<img width="642" height="105" alt="image" src="https://github.com/user-attachments/assets/ae8f0cf8-39a9-4a2d-ac4d-12f7f14e0f8f" />
 
 **Port Type** – Lists operations.
 
-<pre><wsdl:operation name="Login">
-  <wsdl:input message="tns:LoginSoapIn"/>
-  <wsdl:output message="tns:LoginSoapOut"/>
-</wsdl:operation></pre>
-
+<img width="510" height="152" alt="image" src="https://github.com/user-attachments/assets/d863e946-a869-4a2d-a3af-bcc24b01fe74" />
 
 **Binding** – How operations are called (SOAP config).
 
-`<soap:operation soapAction="Login" style="document"/>`
+<img width="585" height="52" alt="image" src="https://github.com/user-attachments/assets/ff38353e-aac7-4599-9007-20a497f4af91" />
 
 **Service** – The actual endpoint.
 
-`<soap:address location="http://localhost:80/wsdl"/>`
+<img width="578" height="50" alt="image" src="https://github.com/user-attachments/assets/52f55c9f-807a-4bd8-b420-7492a00a0e64" />
+
