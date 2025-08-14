@@ -50,6 +50,89 @@ All web services are APIs, but not all APIs are web services.
 <img width="905" height="752" alt="image" src="https://github.com/user-attachments/assets/17afc304-16d7-4266-8cbf-ffef96c4dd88" />
 
 
-<wsdl:message name="LoginSoapIn">
+# Web Services Description Language (WSDL)
+
+WSDL is an XML-based file that describes a web service:
+
+- What services/methods it provides
+- Where they are located
+- How to call them (method-calling convention)
+
+Some developers hide WSDL files or put them in uncommon locations. We can use directory and parameter fuzzing to find them.
+
+## 1. Directory Fuzzing
+
+We start by scanning for possible WSDL files.
+
+`dirb http://<TARGET IP>:3002`
+
+Result:
+
+`+ http://<TARGET IP>:3002/wsdl (CODE:200|SIZE:0)`
+
+## 2. Inspecting /wsdl
+
+`aykhan21@htb[/htb]$ curl http://<TARGET IP>:3002/wsdl`
+
+
+Result: Empty response → likely needs a parameter.
+
+
+## 3. Parameter Fuzzing
+
+We try parameters using ffuf with `-fs 0` to filter empty responses and `-mc 200` for `HTTP 200 only`.
+
+`aykhan21@htb[/htb]$ ffuf -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt -u 'http://<TARGET IP>:3002/wsdl?FUZZ' -fs 0 -mc 200`
+
+Result:
+
+`wsdl [Status: 200, Size: 4461]`
+
+## 4. Accessing the WSDL File
+
+`aykhan21@htb[/htb]$ curl http://<TARGET IP>:3002/wsdl?wsdl`
+
+Result: Full WSDL XML with service details, including:
+
+- Operations: Login, ExecuteCommand
+- Parameters: username, password, cmd
+- Service endpoint: http://localhost:80/wsdl
+
+## 5. WSDL Structure (Key Elements)
+
+Definition – Root element containing namespaces, types, messages, operations, and service details.
+
+`<wsdl:definitions targetNamespace="http://tempuri.org/">`
+
+**Data Types** – Defines request/response formats.
+
+<pre><s:element name="LoginRequest">
+  <s:sequence>
+    <s:element name="username" type="s:string"/>
+    <s:element name="password" type="s:string"/>
+  </s:sequence>
+</s:element></pre>
+
+
+**Messages** – Input/output formats for each operation.
+
+<pre><wsdl:message name="LoginSoapIn">
   <wsdl:part name="parameters" element="tns:LoginRequest"/>
-</wsdl:message>
+</wsdl:message></pre>
+
+
+**Port Type** – Lists operations.
+
+<pre><wsdl:operation name="Login">
+  <wsdl:input message="tns:LoginSoapIn"/>
+  <wsdl:output message="tns:LoginSoapOut"/>
+</wsdl:operation></pre>
+
+
+**Binding** – How operations are called (SOAP config).
+
+`<soap:operation soapAction="Login" style="document"/>`
+
+**Service** – The actual endpoint.
+
+`<soap:address location="http://localhost:80/wsdl"/>`
